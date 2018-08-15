@@ -27,9 +27,9 @@ class Layer:
 
     def activate(self, x):
         """
-        Calculates the "prediction" of this layer.
+        Calculates the dot product of this layer.
         :param x: The input.
-        :return: The "prediction".
+        :return: The result.
         """
 
         r = np.dot(x, self.weights) + self.bias
@@ -43,6 +43,7 @@ class Layer:
         :return: The "activated" value.
         """
 
+        # In case no activation function was chosen
         if self.activation is None:
             return r
 
@@ -63,11 +64,14 @@ class Layer:
         :return: The "derived" value.
         """
 
+        # We use 'r' directly here because its already activated, the only values that
+        # are used in this function are the last activations that were saved.
+
         if self.activation is None:
             return r
 
         if self.activation == 'tanh':
-            return 1 - np.tanh(r) ** 2
+            return 1 - r ** 2
 
         if self.activation == 'sigmoid':
             return r * (1 - r)
@@ -144,6 +148,7 @@ class NeuralNetwork:
                 layer.error = np.dot(next_layer.weights, next_layer.delta)
                 layer.delta = layer.error * layer.apply_activation_derivative(layer.last_activation)
 
+        # Update the weights
         for i in range(len(self._layers)):
             layer = self._layers[i]
             # The input is either the previous layers output or X itself (for the first hidden layer)
@@ -195,7 +200,7 @@ if __name__ == '__main__':
     y = np.array([[0], [0], [0], [1]])
 
     # Train the neural network
-    errors = nn.train(X, y, 0.3, 260)
+    errors = nn.train(X, y, 0.3, 290)
     print('Accuracy: %.2f%%' % (nn.accuracy(nn.predict(X), y.flatten()) * 100))
 
     # Plot changes in mse
@@ -203,4 +208,6 @@ if __name__ == '__main__':
     plt.title('Changes in MSE')
     plt.xlabel('Epoch (every 10th)')
     plt.ylabel('MSE')
-    plt.show()
+    # plt.show()
+
+    print(nn.predict([[2, 0], [0, -1], [45, 203], [-21, 0], [0, 85], [0, -328], [50, -20]]))
