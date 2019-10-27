@@ -3,7 +3,6 @@ import matplotlib.pyplot as plt
 
 np.random.seed(100)
 
-
 class Layer:
     """
     Represents a layer (hidden or output) in our neural network.
@@ -18,9 +17,9 @@ class Layer:
         :param bias: The layer's bias.
         """
 
-        self.weights = weights if weights is not None else np.random.rand(n_input, n_neurons)
+        self.weights = weights if weights is not None else np.random.randn(n_input, n_neurons)
         self.activation = activation
-        self.bias = bias if bias is not None else np.random.rand(n_neurons)
+        self.bias = bias if bias is not None else np.random.randn(n_neurons)
         self.last_activation = None
         self.error = None
         self.delta = None
@@ -115,14 +114,15 @@ class NeuralNetwork:
         """
 
         ff = self.feed_forward(X)
-
+        return ff
+        """
         # One row
         if ff.ndim == 1:
             return np.argmax(ff)
 
         # Multiple rows
         return np.argmax(ff, axis=1)
-
+        """
     def backpropagation(self, X, y, learning_rate):
         """
         Performs the backward propagation algorithm and updates the layers weights.
@@ -170,7 +170,6 @@ class NeuralNetwork:
         for i in range(max_epochs):
             for j in range(len(X)):
                 self.backpropagation(X[j], y[j], learning_rate)
-            if i % 10 == 0:
                 mse = np.mean(np.square(y - nn.feed_forward(X)))
                 mses.append(mse)
                 print('Epoch: #%s, MSE: %f' % (i, float(mse)))
@@ -186,28 +185,30 @@ class NeuralNetwork:
         :return: The calculated accuracy.
         """
 
-        return (y_pred == y_true).mean()
+        return ((np.round(y_pred,1)== y_true)).mean()
 
 
 if __name__ == '__main__':
     nn = NeuralNetwork()
-    nn.add_layer(Layer(2, 3, 'tanh'))
-    nn.add_layer(Layer(3, 3, 'sigmoid'))
-    nn.add_layer(Layer(3, 2, 'sigmoid'))
+    nn.add_layer(Layer(2, 10, 'tanh'))
+    nn.add_layer(Layer(10, 1, 'sigmoid'))
 
-    # Define dataset
+    # Define dataset XOR
     X = np.array([[0, 0], [0, 1], [1, 0], [1, 1]])
-    y = np.array([[0], [0], [0], [1]])
+    y = np.array([[0], [1], [1], [0]])
 
     # Train the neural network
-    errors = nn.train(X, y, 0.3, 290)
-    print('Accuracy: %.2f%%' % (nn.accuracy(nn.predict(X), y.flatten()) * 100))
+    errors = nn.train(X, y, 0.75, 300)
+    print("Accuracy: %.2f%%" % (nn.accuracy(nn.predict(X)[:,0].T, y.flatten()) * 100))
+    print("Data ouput: \n" + str(y))
+    print("Predicted output: \n" + str(nn.predict(X)))
+    print("Predicted output round: \n" + str(np.round(nn.predict(X),1)))
 
     # Plot changes in mse
-    plt.plot(errors)
+    plt.plot(errors, c = 'b', label = 'MSE')
     plt.title('Changes in MSE')
-    plt.xlabel('Epoch (every 10th)')
+    plt.xlabel('Epochs')
     plt.ylabel('MSE')
-    # plt.show()
-
-    print(nn.predict([[2, 0], [0, -1], [45, 203], [-21, 0], [0, 85], [0, -328], [50, -20]]))
+    plt.grid(linestyle='-.', linewidth=0.5)
+    plt.legend()
+    plt.show()
